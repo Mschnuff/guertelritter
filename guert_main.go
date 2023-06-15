@@ -70,11 +70,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.CompositeMode = 0
 	centerX := screen.Bounds().Dx()
 	centerY := screen.Bounds().Dy()
-	middle := player.img.Bounds()
+	middleX := float64(player.img.Bounds().Dx()) / 2
+	middleY := float64(player.img.Bounds().Dy()) / 2
 
-	op.GeoM.Translate(-float64(middle.Dx())/2, -float64(middle.Dy())/2)
+	// translate object to half of its width and height before and after rotating to make it spin around its center
+	op.GeoM.Translate(-middleX, -middleY)
 	op.GeoM.Rotate(float64(player.rot) / 360)
-	op.GeoM.Translate(float64(middle.Dx())/2, float64(middle.Dy())/2)
+	op.GeoM.Translate(middleX, middleY)
+
 	op.GeoM.Translate(float64(centerX), float64(centerY))
 	op.GeoM.Scale(0.3, 0.3)
 
