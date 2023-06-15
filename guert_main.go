@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	_ "image/png"
 	"log"
+	"math"
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -27,8 +29,9 @@ type debugWindow struct {
 	backgroundColor color.RGBA
 }
 type mouseCursor struct {
-	xPos int
-	yPos int
+	xPos  int
+	yPos  int
+	angle float64
 }
 
 // var img *ebiten.Image
@@ -60,11 +63,12 @@ type Game struct{}
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
-	player.xpos += 1
-	player.ypos += 1
+	player.xpos += 0
+	player.ypos += 0
 	player.rot += 1
 
 	mouse.xPos, mouse.yPos = ebiten.CursorPosition()
+	mouse.angle = math.Atan2(float64(player.xpos)-float64(mouse.xPos), float64(player.ypos)-float64(mouse.yPos))
 
 	// Write your game's logical update.
 	return nil
@@ -93,9 +97,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	screen.DrawImage(player.img, op)
 	// Write your game's rendering.
+	myangle := fmt.Sprintf("%f", mouse.angle)
 	var playerPosition string = "player x-postion: " + strconv.Itoa(player.xpos) + ", player y-position: " + strconv.Itoa(player.ypos) + "\n"
 	var cursorPosition string = "cursor x-postion: " + strconv.Itoa(mouse.xPos) + ", cursor y-position: " + strconv.Itoa(mouse.yPos) + "\n"
-	debug.out = playerPosition + cursorPosition
+	var cursorAngle string = "mouse angle (atan2): " + myangle + "\n"
+	debug.out = playerPosition + cursorPosition + cursorAngle
 
 	screen.DrawImage(debug.background, nil)
 	ebitenutil.DebugPrintAt(screen, debug.out, debug.xpos, debug.ypos)
