@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"image/color"
 	_ "image/png"
 	"log"
-	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	inp "github.com/mschnuff/guertelritter/input"
+	text "github.com/mschnuff/guertelritter/text"
 )
 
 type moveableobj struct {
@@ -20,19 +18,7 @@ type moveableobj struct {
 	rot  int
 }
 
-type debugWindow struct {
-	out             string
-	xpos            int
-	ypos            int
-	xsize           int
-	ysize           int
-	background      *ebiten.Image
-	backgroundColor color.RGBA
-}
-
-// var img *ebiten.Image
 var player moveableobj
-var debug debugWindow
 var mouseAngle float64
 
 func init() {
@@ -45,11 +31,8 @@ func init() {
 	player.xpos = 320
 	player.ypos = 240
 
-	debug.xsize = 220
-	debug.ysize = 30
-	debug.backgroundColor = color.RGBA{0, 0, 0, 100}
-	debug.background = ebiten.NewImage(debug.xsize, debug.ysize)
-	debug.background.Fill(debug.backgroundColor)
+	// initialise the debug-window
+	text.InitDebug()
 
 }
 
@@ -59,12 +42,14 @@ type Game struct{}
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
-	player.xpos += 0
-	player.ypos += 0
-	player.rot += 1
+	// we have to clear debug on every update
+	text.ClearDebug()
+	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
+	text.AddToDebug("player x-postion: " + text.IntToStr(player.xpos) + ", player y-position: " + text.IntToStr(player.ypos))
 
+	// addtodebug can be used to conveniently add debug messages
 	mouseAngle = inp.GetCursorToPlayerAngle(player.xpos, player.ypos)
-
+	text.AddToDebug("mouse angle (atan2): " + text.FloatToStr(mouseAngle))
 	// Write your game's logical update.
 	return nil
 }
@@ -95,17 +80,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// #3 scale
 	// #4 translate to actual position
 
+	// draw player object
 	screen.DrawImage(player.img, op)
 
-	// Write your game's rendering.
-	myangle := fmt.Sprintf("%f", mouseAngle)
-	var playerPosition string = "player x-postion: " + strconv.Itoa(player.xpos) + ", player y-position: " + strconv.Itoa(player.ypos) + "\n"
-	//var cursorPosition string = "cursor x-postion: " + strconv.Itoa(mouse.xPos) + ", cursor y-position: " + strconv.Itoa(mouse.yPos) + "\n"
-	var cursorAngle string = "mouse angle (atan2): " + myangle + "\n"
-	debug.out = playerPosition + cursorAngle
-
-	screen.DrawImage(debug.background, nil)
-	ebitenutil.DebugPrintAt(screen, debug.out, debug.xpos, debug.ypos)
+	// draw debug-background and debug-message
+	screen.DrawImage(text.DebugBackground(), nil)
+	ebitenutil.DebugPrintAt(screen, text.DebugMsg(), text.DebugXpos(), text.DebugYpos())
 
 }
 
@@ -126,5 +106,4 @@ func main() {
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
-	//fmt.Printf("player x-postion: %d, player y-position: %d\n", player.xpos, player.ypos)
 }

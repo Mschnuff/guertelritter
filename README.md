@@ -7,6 +7,6 @@ With this project I test the capabilities of the **ebiten** game engine while al
 ## next Steps (TODO):
 - [X] make player object rotate towards the mouse Cursor
 - [X] draw arrow on player object to make it obvious what it is facing atm
-- [ ] refactor the main file to generalise the functionality so it can be used of other objects (besides player-object)
+- [ ] refactor the main file to generalise the functionality so it can be used for other objects (besides player-object)
 - [X] figure out how embed other go files (in the same directory and in other directories)
-- [ ] add keyboard input for moving the player-object
+- [X] add keyboard input for moving the player-object

@@ -21,3 +21,22 @@ func GetCursorToPlayerAngle(playerX int, playerY int) float64 {
 
 	return mouse.angle
 }
+
+func HandlePlayerMovement(playerX int, playerY int) (int, int) {
+	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		playerX += 1
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+		playerY += 1
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+		playerX -= 1
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+		playerY -= 1
+	}
+	return playerX, playerY
+}
