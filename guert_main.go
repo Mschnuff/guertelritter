@@ -26,10 +26,15 @@ type debugWindow struct {
 	background      *ebiten.Image
 	backgroundColor color.RGBA
 }
+type mouseCursor struct {
+	xPos int
+	yPos int
+}
 
 // var img *ebiten.Image
 var player moveableobj
 var debug debugWindow
+var mouse mouseCursor
 
 func init() {
 	var err error
@@ -59,6 +64,8 @@ func (g *Game) Update() error {
 	player.ypos += 1
 	player.rot += 1
 
+	mouse.xPos, mouse.yPos = ebiten.CursorPosition()
+
 	// Write your game's logical update.
 	return nil
 }
@@ -86,7 +93,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	screen.DrawImage(player.img, op)
 	// Write your game's rendering.
-	debug.out = "player x-postion: " + strconv.Itoa(player.xpos) + ", player y-position: " + strconv.Itoa(player.ypos) + "\n"
+	var playerPosition string = "player x-postion: " + strconv.Itoa(player.xpos) + ", player y-position: " + strconv.Itoa(player.ypos) + "\n"
+	var cursorPosition string = "cursor x-postion: " + strconv.Itoa(mouse.xPos) + ", cursor y-position: " + strconv.Itoa(mouse.yPos) + "\n"
+	debug.out = playerPosition + cursorPosition
 
 	screen.DrawImage(debug.background, nil)
 	ebitenutil.DebugPrintAt(screen, debug.out, debug.xpos, debug.ypos)
