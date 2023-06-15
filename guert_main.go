@@ -46,8 +46,8 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	player.xpos = 100
-	player.ypos = 100
+	player.xpos = 320
+	player.ypos = 240
 
 	debug.xsize = 220
 	debug.ysize = 30
@@ -79,21 +79,26 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.CompositeMode = 0
-	centerX := screen.Bounds().Dx()
-	centerY := screen.Bounds().Dy()
+	//centerX := screen.Bounds().Dx()
+	//centerY := screen.Bounds().Dy()
 	middleX := float64(player.img.Bounds().Dx()) / 2
 	middleY := float64(player.img.Bounds().Dy()) / 2
 
 	// translate object to half of its width and height before and after rotating to make it spin around its center
+	// we temporarily deactivated reversing the translation
 	op.GeoM.Translate(-middleX, -middleY)
-	op.GeoM.Rotate(float64(player.rot) / 360)
-	op.GeoM.Translate(middleX, middleY)
 
-	op.GeoM.Translate(float64(centerX), float64(centerY))
+	op.GeoM.Rotate(-mouse.angle)
+	//op.GeoM.Translate(middleX, middleY)
+
 	op.GeoM.Scale(0.3, 0.3)
+	op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
 
-	// zuerst in Ursprung verschieben?
-	//op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
+	// steps:
+	// #1 translate to middle of object
+	// #2 rotate
+	// #3 scale
+	// #4 translate to actual position
 
 	screen.DrawImage(player.img, op)
 	// Write your game's rendering.
