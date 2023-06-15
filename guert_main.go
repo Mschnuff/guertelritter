@@ -5,11 +5,12 @@ import (
 	"image/color"
 	_ "image/png"
 	"log"
-	"math"
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+
+	inp "github.com/mschnuff/guertelritter/input"
 )
 
 type moveableobj struct {
@@ -28,16 +29,11 @@ type debugWindow struct {
 	background      *ebiten.Image
 	backgroundColor color.RGBA
 }
-type mouseCursor struct {
-	xPos  int
-	yPos  int
-	angle float64
-}
 
 // var img *ebiten.Image
 var player moveableobj
 var debug debugWindow
-var mouse mouseCursor
+var mouseAngle float64
 
 func init() {
 	var err error
@@ -67,8 +63,7 @@ func (g *Game) Update() error {
 	player.ypos += 0
 	player.rot += 1
 
-	mouse.xPos, mouse.yPos = ebiten.CursorPosition()
-	mouse.angle = math.Atan2(float64(player.xpos)-float64(mouse.xPos), float64(player.ypos)-float64(mouse.yPos))
+	mouseAngle = inp.GetCursorToPlayerAngle(player.xpos, player.ypos)
 
 	// Write your game's logical update.
 	return nil
@@ -88,7 +83,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// we temporarily deactivated reversing the translation
 	op.GeoM.Translate(-middleX, -middleY)
 
-	op.GeoM.Rotate(-mouse.angle)
+	op.GeoM.Rotate(-mouseAngle)
 	//op.GeoM.Translate(middleX, middleY)
 
 	op.GeoM.Scale(0.3, 0.3)
@@ -101,12 +96,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// #4 translate to actual position
 
 	screen.DrawImage(player.img, op)
+
 	// Write your game's rendering.
-	myangle := fmt.Sprintf("%f", mouse.angle)
+	myangle := fmt.Sprintf("%f", mouseAngle)
 	var playerPosition string = "player x-postion: " + strconv.Itoa(player.xpos) + ", player y-position: " + strconv.Itoa(player.ypos) + "\n"
-	var cursorPosition string = "cursor x-postion: " + strconv.Itoa(mouse.xPos) + ", cursor y-position: " + strconv.Itoa(mouse.yPos) + "\n"
+	//var cursorPosition string = "cursor x-postion: " + strconv.Itoa(mouse.xPos) + ", cursor y-position: " + strconv.Itoa(mouse.yPos) + "\n"
 	var cursorAngle string = "mouse angle (atan2): " + myangle + "\n"
-	debug.out = playerPosition + cursorPosition + cursorAngle
+	debug.out = playerPosition + cursorAngle
 
 	screen.DrawImage(debug.background, nil)
 	ebitenutil.DebugPrintAt(screen, debug.out, debug.xpos, debug.ypos)
