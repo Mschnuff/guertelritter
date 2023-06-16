@@ -12,3 +12,5 @@ With this project I test the capabilities of the **ebiten** game engine while al
 - [X] add keyboard input for moving the player-object
 - [ ] move player-assoctiated code from init function to a different function dedicated to the player-object only
 - [ ] figure out if 'op.GeoM.Translate' etc should be called in the draw or the update function
+- [ ] change game logic so the player-object does not leave screen. instead it moves relative to the background
+- [ ] create tile-based background (tiles are supposed to rearrange automatically)

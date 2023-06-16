@@ -27,7 +27,9 @@ func init() {
 	// init player TODO: move this code to a different function
 	var err error
 
-	player.img, _, err = ebitenutil.NewImageFromFile("trust.png")
+	// this path depends on the operating system. TODO: look into this problem while working from home (on windows system)
+	var imgFolder string = "./static/images/"
+	player.img, _, err = ebitenutil.NewImageFromFile(imgFolder + "trust.png")
 	if err != nil {
 		log.Fatal(err)
 	}
