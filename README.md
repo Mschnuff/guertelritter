@@ -10,3 +10,5 @@ With this project I test the capabilities of the **ebiten** game engine while al
 - [ ] refactor the main file to generalise the functionality so it can be used for other objects (besides player-object)
 - [X] figure out how embed other go files (in the same directory and in other directories)
 - [X] add keyboard input for moving the player-object
+- [ ] move player-assoctiated code from init function to a different function dedicated to the player-object only
+- [ ] figure out if 'op.GeoM.Translate' etc should be called in the draw or the update function

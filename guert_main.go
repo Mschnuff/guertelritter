@@ -12,16 +12,19 @@ import (
 )
 
 type moveableobj struct {
-	img  *ebiten.Image
-	xpos int
-	ypos int
-	rot  int
+	img     *ebiten.Image
+	xpos    int
+	ypos    int
+	rot     int
+	middleX float64
+	middleY float64
 }
 
 var player moveableobj
 var mouseAngle float64
 
 func init() {
+	// init player TODO: move this code to a different function
 	var err error
 
 	player.img, _, err = ebitenutil.NewImageFromFile("trust.png")
@@ -30,6 +33,8 @@ func init() {
 	}
 	player.xpos = 320
 	player.ypos = 240
+	player.middleX = float64(player.img.Bounds().Dx()) / 2
+	player.middleY = float64(player.img.Bounds().Dy()) / 2
 
 	// initialise the debug-window
 	text.InitDebug()
@@ -61,12 +66,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	op.CompositeMode = 0
 	//centerX := screen.Bounds().Dx()
 	//centerY := screen.Bounds().Dy()
-	middleX := float64(player.img.Bounds().Dx()) / 2
-	middleY := float64(player.img.Bounds().Dy()) / 2
 
 	// translate object to half of its width and height before and after rotating to make it spin around its center
 	// we temporarily deactivated reversing the translation
-	op.GeoM.Translate(-middleX, -middleY)
+	op.GeoM.Translate(-player.middleX, -player.middleY)
 
 	op.GeoM.Rotate(-mouseAngle)
 	//op.GeoM.Translate(middleX, middleY)
