@@ -25,6 +25,7 @@ var mouseAngle float64
 
 func init() {
 	// init player TODO: move this code to a different function
+	// testpush
 	var err error
 
 	// this path depends on the operating system. TODO: look into this problem while working from home (on windows system)
