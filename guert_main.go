@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	_ "image/png"
 	"log"
 
@@ -25,6 +24,10 @@ type backgroundGraphics struct {
 	img  [16]*ebiten.Image
 	xpos [16]int
 	ypos [16]int
+	op   [16]*ebiten.DrawImageOptions
+	//imgSize [2]int
+	width  int
+	height int
 }
 
 var player moveableobj
@@ -53,34 +56,40 @@ func init() {
 }
 func initBackground(imgFolder string) {
 	var err error
-	imgSize := []int{512, 512}
+
 	bgImgPositions := [16][2]int{
-		{imgSize[0] * 0, imgSize[1] * 0}, // 0 xpos ypos
-		{imgSize[0] * 1, imgSize[1] * 0}, // 1
-		{imgSize[0] * 2, imgSize[1] * 0}, // 2
-		{imgSize[0] * 3, imgSize[1] * 0}, // 3
-		{imgSize[0] * 0, imgSize[1] * 1}, // 4
-		{imgSize[0] * 1, imgSize[1] * 1}, // 5
-		{imgSize[0] * 2, imgSize[1] * 1}, // 6
-		{imgSize[0] * 3, imgSize[1] * 1}, // 7
-		{imgSize[0] * 0, imgSize[1] * 2}, // 8
-		{imgSize[0] * 1, imgSize[1] * 2}, // 9
-		{imgSize[0] * 2, imgSize[1] * 2}, // 10
-		{imgSize[0] * 3, imgSize[1] * 2}, // 11
-		{imgSize[0] * 0, imgSize[1] * 3}, // 12
-		{imgSize[0] * 0, imgSize[1] * 3}, // 13
-		{imgSize[0] * 0, imgSize[1] * 3}, // 14
-		{imgSize[0] * 0, imgSize[1] * 3}, // 15
+		{0, 0}, // 0 xpos ypos
+		{1, 0}, // 1
+		{2, 0}, // 2
+		{3, 0}, // 3
+		{0, 1}, // 4
+		{1, 1}, // 5
+		{2, 1}, // 6
+		{3, 1}, // 7
+		{0, 2}, // 8
+		{1, 2}, // 9
+		{2, 2}, // 10
+		{3, 2}, // 11
+		{0, 3}, // 12
+		{1, 3}, // 13
+		{2, 3}, // 14
+		{3, 3}, // 15
 	}
 
 	for c := 0; c < len(bg.xpos); c++ {
-		bg.img[c], _, err = ebitenutil.NewImageFromFile(imgFolder + "background_template_" + text.IntToStr(c+1) + ".png")
+		currentImgPath := imgFolder + "background_template_" + text.IntToStr(c+1) + ".png"
+		bg.img[c], _, err = ebitenutil.NewImageFromFile(currentImgPath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		bg.xpos[c] = bgImgPositions[c][0]
-		bg.ypos[c] = bgImgPositions[c][1]
-		fmt.Print("background image num: " + text.IntToStr(c+1) + ", x: " + text.IntToStr(bg.xpos[c]) + ", y: " + text.IntToStr(bg.ypos[c]) + "\n")
+		//bg.imgSize = [2]int{bg.img[c].Bounds().Dx(), bg.img[c].Bounds().Dy()}
+		bg.width = bg.img[c].Bounds().Dx()
+		bg.height = bg.img[c].Bounds().Dy()
+		bg.xpos[c] = bgImgPositions[c][0] * bg.width
+		bg.ypos[c] = bgImgPositions[c][1] * bg.height
+		//fmt.Print("background image num: " + text.IntToStr(c+1) + ", x: " + text.IntToStr(bg.xpos[c]) + ", y: " + text.IntToStr(bg.ypos[c]) + "\n")
+		//fmt.Print("filepath to images: " + currentImgPath + "\n")
+
 	}
 
 }
@@ -126,6 +135,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// #2 rotate
 	// #3 scale
 	// #4 translate to actual position
+
+	// draw background first
+	for i := 0; i < len(bg.img); i++ {
+
+		bgop := &ebiten.DrawImageOptions{}
+		// factor 3,125
+		xScaleFactor := ((640 / 4) / float64(bg.width))
+		yScaleFactor := ((480 / 4) / float64(bg.height))
+
+		bgop.GeoM.Scale(xScaleFactor, yScaleFactor)
+		bgop.GeoM.Translate(float64(bg.xpos[i])*xScaleFactor, float64(bg.ypos[i])*yScaleFactor)
+
+		screen.DrawImage(bg.img[i], bgop)
+	}
 
 	// draw player object
 	screen.DrawImage(player.img, op)
