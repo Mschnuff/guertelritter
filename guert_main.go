@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	_ "image/png"
 	"log"
 
@@ -20,8 +21,15 @@ type moveableobj struct {
 	middleY float64
 }
 
+type backgroundGraphics struct {
+	img  [16]*ebiten.Image
+	xpos [16]int
+	ypos [16]int
+}
+
 var player moveableobj
 var mouseAngle float64
+var bg backgroundGraphics
 
 func init() {
 	// init player TODO: move this code to a different function
@@ -38,8 +46,42 @@ func init() {
 	player.middleX = float64(player.img.Bounds().Dx()) / 2
 	player.middleY = float64(player.img.Bounds().Dy()) / 2
 
+	initBackground(imgFolder)
 	// initialise the debug-window
 	text.InitDebug()
+
+}
+func initBackground(imgFolder string) {
+	var err error
+	imgSize := []int{512, 512}
+	bgImgPositions := [16][2]int{
+		{imgSize[0] * 0, imgSize[1] * 0}, // 0 xpos ypos
+		{imgSize[0] * 1, imgSize[1] * 0}, // 1
+		{imgSize[0] * 2, imgSize[1] * 0}, // 2
+		{imgSize[0] * 3, imgSize[1] * 0}, // 3
+		{imgSize[0] * 0, imgSize[1] * 1}, // 4
+		{imgSize[0] * 1, imgSize[1] * 1}, // 5
+		{imgSize[0] * 2, imgSize[1] * 1}, // 6
+		{imgSize[0] * 3, imgSize[1] * 1}, // 7
+		{imgSize[0] * 0, imgSize[1] * 2}, // 8
+		{imgSize[0] * 1, imgSize[1] * 2}, // 9
+		{imgSize[0] * 2, imgSize[1] * 2}, // 10
+		{imgSize[0] * 3, imgSize[1] * 2}, // 11
+		{imgSize[0] * 0, imgSize[1] * 3}, // 12
+		{imgSize[0] * 0, imgSize[1] * 3}, // 13
+		{imgSize[0] * 0, imgSize[1] * 3}, // 14
+		{imgSize[0] * 0, imgSize[1] * 3}, // 15
+	}
+
+	for c := 0; c < len(bg.xpos); c++ {
+		bg.img[c], _, err = ebitenutil.NewImageFromFile(imgFolder + "background_template_" + text.IntToStr(c+1) + ".png")
+		if err != nil {
+			log.Fatal(err)
+		}
+		bg.xpos[c] = bgImgPositions[c][0]
+		bg.ypos[c] = bgImgPositions[c][1]
+		fmt.Print("background image num: " + text.IntToStr(c+1) + ", x: " + text.IntToStr(bg.xpos[c]) + ", y: " + text.IntToStr(bg.ypos[c]) + "\n")
+	}
 
 }
 

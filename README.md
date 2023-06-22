@@ -14,3 +14,5 @@ With this project I test the capabilities of the **ebiten** game engine while al
 - [ ] figure out if 'op.GeoM.Translate' etc should be called in the draw or the update function
 - [ ] change game logic so the player-object does not leave screen. instead it moves relative to the background
 - [ ] create tile-based background (tiles are supposed to rearrange automatically)
+- [ ] look into os dependant paths to files
+- [ ] learn how to write tests in golang
