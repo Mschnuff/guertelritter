@@ -4,6 +4,10 @@ With this project I test the capabilities of the **ebiten** game engine while al
 ## Links
 * [ebiten tutorials and info](https://ebitengine.org/)
 
+## New Features
+* Added Background
+* Allow multiple window resolutions
+
 ## next Steps (TODO):
 - [X] make player object rotate towards the mouse Cursor
 - [X] draw arrow on player object to make it obvious what it is facing atm
@@ -11,8 +15,10 @@ With this project I test the capabilities of the **ebiten** game engine while al
 - [X] figure out how embed other go files (in the same directory and in other directories)
 - [X] add keyboard input for moving the player-object
 - [ ] move player-assoctiated code from init function to a different function dedicated to the player-object only
-- [ ] figure out if 'op.GeoM.Translate' etc should be called in the draw or the update function
+- [X] figure out if 'op.GeoM.Translate' etc should be called in the draw or the update function
 - [ ] change game logic so the player-object does not leave screen. instead it moves relative to the background
 - [ ] create tile-based background (tiles are supposed to rearrange automatically)
 - [ ] look into os dependant paths to files
 - [ ] learn how to write tests in golang
+- [ ] figure out how to fix movement with events (player stops if two opposite buttons are pressed at the same time)
+- [ ] add comments to code that explain what's going on

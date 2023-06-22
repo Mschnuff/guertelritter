@@ -26,26 +26,34 @@ type backgroundGraphics struct {
 	ypos [16]int
 	op   [16]*ebiten.DrawImageOptions
 	//imgSize [2]int
-	width  int
-	height int
+	width        int
+	height       int
+	xScaleFactor float64
+	yScaleFactor float64
 }
 
+type graphiceSettings struct {
+	winWidth  int
+	winHeight int
+}
+
+var gset graphiceSettings
 var player moveableobj
 var mouseAngle float64
 var bg backgroundGraphics
 
 func init() {
+	initGraphics()
 	// init player TODO: move this code to a different function
 	var err error
-
 	// this path depends on the operating system. TODO: look into this problem while working from home (on windows system)
 	var imgFolder string = "./static/images/"
 	player.img, _, err = ebitenutil.NewImageFromFile(imgFolder + "trust.png")
 	if err != nil {
 		log.Fatal(err)
 	}
-	player.xpos = 320
-	player.ypos = 240
+	player.xpos = gset.winWidth / 2
+	player.ypos = gset.winHeight / 2
 	player.middleX = float64(player.img.Bounds().Dx()) / 2
 	player.middleY = float64(player.img.Bounds().Dy()) / 2
 
@@ -53,6 +61,10 @@ func init() {
 	// initialise the debug-window
 	text.InitDebug()
 
+}
+func initGraphics() {
+	gset.winWidth = 1024
+	gset.winHeight = 768
 }
 func initBackground(imgFolder string) {
 	var err error
@@ -82,13 +94,13 @@ func initBackground(imgFolder string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		//bg.imgSize = [2]int{bg.img[c].Bounds().Dx(), bg.img[c].Bounds().Dy()}
+
 		bg.width = bg.img[c].Bounds().Dx()
 		bg.height = bg.img[c].Bounds().Dy()
 		bg.xpos[c] = bgImgPositions[c][0] * bg.width
 		bg.ypos[c] = bgImgPositions[c][1] * bg.height
-		//fmt.Print("background image num: " + text.IntToStr(c+1) + ", x: " + text.IntToStr(bg.xpos[c]) + ", y: " + text.IntToStr(bg.ypos[c]) + "\n")
-		//fmt.Print("filepath to images: " + currentImgPath + "\n")
+		bg.xScaleFactor = (float64((gset.winWidth / 4)) / float64(bg.width))
+		bg.yScaleFactor = (float64((gset.winHeight / 4)) / float64(bg.height))
 
 	}
 
@@ -140,12 +152,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for i := 0; i < len(bg.img); i++ {
 
 		bgop := &ebiten.DrawImageOptions{}
-		// factor 3,125
-		xScaleFactor := ((640 / 4) / float64(bg.width))
-		yScaleFactor := ((480 / 4) / float64(bg.height))
-
-		bgop.GeoM.Scale(xScaleFactor, yScaleFactor)
-		bgop.GeoM.Translate(float64(bg.xpos[i])*xScaleFactor, float64(bg.ypos[i])*yScaleFactor)
+		bgop.GeoM.Scale(bg.xScaleFactor, bg.yScaleFactor)
+		bgop.GeoM.Translate(float64(bg.xpos[i])*bg.xScaleFactor, float64(bg.ypos[i])*bg.yScaleFactor)
 
 		screen.DrawImage(bg.img[i], bgop)
 	}
@@ -168,9 +176,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	game := &Game{}
 
-	// Specify the window size as you like. Here, a doubled size is specified.
-	var winWidth, winHeight int = 640, 480
-	ebiten.SetWindowSize(game.Layout(winWidth, winHeight))
+	// window size  is specified in the init()-Function. feel free to change it.
+
+	ebiten.SetWindowSize(game.Layout(gset.winWidth, gset.winHeight))
 	ebiten.SetWindowTitle("GuertelRitter")
 	// Call ebiten.RunGame to start your game loop.
 	if err := ebiten.RunGame(game); err != nil {
