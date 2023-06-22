@@ -11,8 +11,15 @@ type mouseCursor struct {
 	yPos  int
 	angle float64
 }
+type previousDirections struct {
+	right bool
+	down  bool
+	left  bool
+	up    bool
+}
 
 var mouse mouseCursor
+var pD previousDirections
 
 func GetCursorToPlayerAngle(playerX int, playerY int) float64 {
 
@@ -24,6 +31,9 @@ func GetCursorToPlayerAngle(playerX int, playerY int) float64 {
 
 func HandlePlayerMovement(playerX int, playerY int) (int, int) {
 	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		if pD.left && !pD.right {
+			//23.06.2023 hier logik überdenken
+		}
 		playerX += 1
 	}
 
