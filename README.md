@@ -20,5 +20,5 @@ With this project I test the capabilities of the **ebiten** game engine while al
 - [ ] create tile-based background (tiles are supposed to rearrange automatically)
 - [ ] look into os dependant paths to files
 - [ ] learn how to write tests in golang
-- [ ] figure out how to fix movement with events (player stops if two opposite buttons are pressed at the same time)
+- [X] figure out how to fix movement with events (player stops if two opposite buttons are pressed at the same time)
 - [ ] add comments to code that explain what's going on
