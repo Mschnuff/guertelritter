@@ -119,7 +119,8 @@ func (g *Game) Update() error {
 	text.AddToDebug("player x-postion: " + text.IntToStr(player.xpos) + ", player y-position: " + text.IntToStr(player.ypos))
 
 	// addtodebug can be used to conveniently add debug messages
-	mouseAngle = inp.GetCursorToPlayerAngle(player.xpos, player.ypos)
+	//mouseAngle = inp.GetCursorToPlayerAngle(player.xpos, player.ypos)
+	mouseAngle = inp.GetCursorToPlayerAngle(gset.winWidth/2, gset.winHeight/2)
 	text.AddToDebug("mouse angle (atan2): " + text.FloatToStr(mouseAngle))
 	// Write your game's logical update.
 	return nil
@@ -141,7 +142,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	//op.GeoM.Translate(middleX, middleY)
 
 	op.GeoM.Scale(0.3, 0.3)
-	op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
+	//op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
+	screenMiddleX := float64(gset.winWidth / 2)  //+ player.middleX
+	screenMiddleY := float64(gset.winHeight / 2) //+ player.middleY
+	op.GeoM.Translate(screenMiddleX, screenMiddleY)
 
 	// steps:
 	// #1 translate to middle of object
@@ -153,9 +157,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for i := 0; i < len(bg.img); i++ {
 
 		bgop := &ebiten.DrawImageOptions{}
-		bgop.GeoM.Scale(bg.xScaleFactor, bg.yScaleFactor)
-		bgop.GeoM.Translate(float64(bg.xpos[i])*bg.xScaleFactor, float64(bg.ypos[i])*bg.yScaleFactor)
+		//bgop.GeoM.Scale(bg.xScaleFactor, bg.yScaleFactor)
+		//bgop.GeoM.Translate(float64(bg.xpos[i])*bg.xScaleFactor, float64(bg.ypos[i])*bg.yScaleFactor)
 
+		// 512 384
+		pivotX := player.xpos - gset.winWidth/2
+		pivotY := player.ypos - gset.winHeight/2
+		bgop.GeoM.Translate(float64(bg.xpos[i]-pivotX), float64(bg.ypos[i]-pivotY))
+		//fmt.Print("pivot x: " + text.IntToStr(pivotX) + ", pivot y: " + text.IntToStr(pivotY))
 		screen.DrawImage(bg.img[i], bgop)
 	}
 

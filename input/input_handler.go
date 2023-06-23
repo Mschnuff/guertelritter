@@ -21,10 +21,10 @@ type previousDirections struct {
 var mouse mouseCursor
 var pD previousDirections
 
-func GetCursorToPlayerAngle(playerX int, playerY int) float64 {
+func GetCursorToPlayerAngle(screenMiddleX int, screenMiddleY int) float64 {
 
 	mouse.xPos, mouse.yPos = ebiten.CursorPosition()
-	mouse.angle = math.Atan2(float64(playerX)-float64(mouse.xPos), float64(playerY)-float64(mouse.yPos))
+	mouse.angle = math.Atan2(float64(screenMiddleX)-float64(mouse.xPos), float64(screenMiddleY)-float64(mouse.yPos))
 
 	return mouse.angle
 }
