@@ -107,6 +107,32 @@ func initBackground(imgFolder string) {
 
 }
 
+func updateBackground() {
+	xBoundScreenMax := gset.winWidth/2 + player.xpos
+	xBoundScreenMin := player.xpos - gset.winWidth/2
+	yBoundScreenMax := gset.winHeight/2 + player.ypos
+	yBoundScreenMin := player.ypos - gset.winHeight/2
+	minX := "min Screen xpos: " + text.IntToStr(xBoundScreenMin)
+	maxX := "max Screen xpos: " + text.IntToStr(xBoundScreenMax)
+	minY := "min Screen ypos: " + text.IntToStr(yBoundScreenMin)
+	maxY := "max Screen ypos: " + text.IntToStr(yBoundScreenMax)
+	text.AddToDebug(minX + ", " + maxX + ", " + minY + ", " + maxY)
+	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
+	for i := 0; i < len(bg.xpos); i++ {
+		onScreen := "false"
+
+		xMax := bg.xpos[i] < xBoundScreenMax
+		xMin := bg.xpos[i] >= xBoundScreenMin-bg.width
+		yMax := bg.ypos[i] < yBoundScreenMax
+		yMin := bg.ypos[i] >= yBoundScreenMin-bg.height
+		if xMax && xMin && yMax && yMin {
+			onScreen = "true"
+		}
+		text.AddToDebug("xpos background image [" + text.IntToStr(i+1) + "]: " + text.IntToStr(bg.xpos[i]) + ", " + text.IntToStr(bg.ypos[i]) + " -> image is on screen: " + onScreen)
+	}
+
+}
+
 // Game implements ebiten.Game interface.
 type Game struct{}
 
@@ -115,7 +141,8 @@ type Game struct{}
 func (g *Game) Update() error {
 	// we have to clear debug on every update
 	text.ClearDebug()
-	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
+	updateBackground()
+
 	text.AddToDebug("player x-postion: " + text.IntToStr(player.xpos) + ", player y-position: " + text.IntToStr(player.ypos))
 
 	// addtodebug can be used to conveniently add debug messages
