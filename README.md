@@ -1,6 +1,8 @@
 # About this repository:
 With this project I test the capabilities of the **ebiten** game engine while also practicing working with golang at the same time by building a game prototype. The game is themed around an astronaut flying through space. The astronaut is also supposed to encounter asteroids on which he can land and thus switch to a different mode of movement. 
 
+![Random Screenshot of early Development](https://github.com/Mschnuff/guertelritter/blob/main/static/images/example_screenshot.PNG?raw=true)
+
 ## Links
 * [ebiten tutorials and info](https://ebitengine.org/)
 
@@ -16,8 +18,8 @@ With this project I test the capabilities of the **ebiten** game engine while al
 - [X] add keyboard input for moving the player-object
 - [ ] move player-assoctiated code from init function to a different function dedicated to the player-object only
 - [X] figure out if 'op.GeoM.Translate' etc should be called in the draw or the update function
-- [ ] change game logic so the player-object does not leave screen. instead it moves relative to the background
-- [ ] create tile-based background (tiles are supposed to rearrange automatically)
+- [X] change game logic so the player-object does not leave screen. instead it moves relative to the background
+- [X] create tile-based background (tiles are supposed to rearrange automatically)
 - [ ] look into os dependant paths to files
 - [ ] learn how to write tests in golang
 - [X] figure out how to fix movement with events (player stops if two opposite buttons are pressed at the same time)
