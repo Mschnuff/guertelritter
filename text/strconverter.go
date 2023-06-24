@@ -13,3 +13,10 @@ func IntToStr(someInt int) string {
 	var out string = strconv.Itoa(someInt)
 	return out
 }
+
+//strconv.FormatBool(v)
+
+func BooltoStr(someBool bool) string {
+	var out string = strconv.FormatBool(someBool)
+	return out
+}

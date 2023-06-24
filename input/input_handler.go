@@ -17,9 +17,17 @@ type previousDirections struct {
 	left  bool
 	up    bool
 }
+type movementSettings struct {
+	speed int
+}
 
+var mS movementSettings
 var mouse mouseCursor
 var pD previousDirections
+
+func SetMovementSpeed(speed int) {
+	mS.speed = speed
+}
 
 func GetCursorToPlayerAngle(screenMiddleX int, screenMiddleY int) float64 {
 
@@ -31,23 +39,23 @@ func GetCursorToPlayerAngle(screenMiddleX int, screenMiddleY int) float64 {
 func calculatePlayerX(cl bool, cr bool) int {
 	pX := 0
 	if cl && !cr {
-		pX = -1
+		pX = -mS.speed
 		pD.left = true
 		pD.right = false
 	} else if cr && !cl {
-		pX = 1
+		pX = mS.speed
 		pD.left = false
 		pD.right = true
 	} else if cr && cl {
 		//rand2 := rand.Intn(2)*2 - 2
 		//playerX += rand2
 		if pD.left && !pD.right {
-			pX = 1
+			pX = mS.speed
 			pD.left = true
 			pD.right = false
 
 		} else if !pD.left && pD.right {
-			pX = -1
+			pX = -mS.speed
 			pD.left = false
 			pD.right = true
 
@@ -58,23 +66,23 @@ func calculatePlayerX(cl bool, cr bool) int {
 func calculatePlayerY(cu bool, cd bool) int {
 	pY := 0
 	if cu && !cd {
-		pY = -1
+		pY = -mS.speed
 		pD.up = true
 		pD.down = false
 	} else if cd && !cu {
-		pY = 1
+		pY = mS.speed
 		pD.up = false
 		pD.down = true
 	} else if cd && cu {
 		//rand2 := rand.Intn(2)*2 - 2
 		//playerX += rand2
 		if pD.up && !pD.down {
-			pY = 1
+			pY = mS.speed
 			pD.up = true
 			pD.down = false
 
 		} else if !pD.up && pD.down {
-			pY = -1
+			pY = -mS.speed
 			pD.up = false
 			pD.down = true
 

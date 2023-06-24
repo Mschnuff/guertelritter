@@ -44,6 +44,7 @@ var bg backgroundGraphics
 
 func init() {
 	initGraphics()
+	inp.SetMovementSpeed(3)
 	// init player TODO: move this code to a different function
 	// testpush
 	var err error
@@ -119,16 +120,30 @@ func updateBackground() {
 	text.AddToDebug(minX + ", " + maxX + ", " + minY + ", " + maxY)
 	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
 	for i := 0; i < len(bg.xpos); i++ {
-		onScreen := "false"
+		onScreen := false
 
 		xMax := bg.xpos[i] < xBoundScreenMax
 		xMin := bg.xpos[i] >= xBoundScreenMin-bg.width
 		yMax := bg.ypos[i] < yBoundScreenMax
 		yMin := bg.ypos[i] >= yBoundScreenMin-bg.height
-		if xMax && xMin && yMax && yMin {
-			onScreen = "true"
+		onScreen = xMax && xMin && yMax && yMin
+		if bg.xpos[i]+bg.width < xBoundScreenMin {
+			bg.xpos[i] = bg.xpos[i] + bg.width*4
 		}
-		text.AddToDebug("xpos background image [" + text.IntToStr(i+1) + "]: " + text.IntToStr(bg.xpos[i]) + ", " + text.IntToStr(bg.ypos[i]) + " -> image is on screen: " + onScreen)
+		if bg.xpos[i] > xBoundScreenMax {
+			bg.xpos[i] = bg.xpos[i] - bg.width*4
+		}
+		if bg.ypos[i]+bg.height < yBoundScreenMin {
+			bg.ypos[i] = bg.ypos[i] + bg.height*4
+		}
+		if bg.ypos[i] > yBoundScreenMax {
+			bg.ypos[i] = bg.ypos[i] - bg.height*4
+		}
+		text.AddToDebug(
+			"xpos background image [" + text.IntToStr(i+1) + "]: " +
+				text.IntToStr(bg.xpos[i]) + ", " +
+				text.IntToStr(bg.ypos[i]) + " -> image is on screen: " +
+				text.BooltoStr(onScreen))
 	}
 
 }
