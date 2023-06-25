@@ -1,5 +1,6 @@
 package main
 
+// --------------------------- Imports --------------------------- //
 import (
 	"fmt"
 	_ "image/png"
@@ -13,6 +14,7 @@ import (
 	text "github.com/mschnuff/guertelritter/text"
 )
 
+// --------------------------- Structs --------------------------- //
 type moveableobj struct {
 	img     *ebiten.Image
 	xpos    int
@@ -40,21 +42,42 @@ type graphiceSettings struct {
 	winHeight int
 	sh        graphics.ScreenHandler
 }
+type mouseHandler struct {
+	x       int
+	y       int
+	angle   float64
+	offsetX float64
+	offsetY float64
+}
 
+// Game implements ebiten.Game interface.
+type Game struct{}
+
+// --------------------------- Variables --------------------------- //
 var gset graphiceSettings
 var player moveableobj
 var mouseAngle float64
 var bg backgroundGraphics
+var mouse mouseHandler
+
+// --------------------------- Init - Start --------------------------- //
 
 func init() {
 	initGraphics()
 	inp.SetMovementSpeed(3)
-	// init player TODO: move this code to a different function
-	// testpush
+
+	var imgFolder string = "./static/images/"
+	initPlayer(imgFolder)
+	initBackground(imgFolder)
+	// initialise the debug-window
+	text.InitDebug()
+
+}
+func initPlayer(imgFolder string) {
 	var err error
 	// this path depends on the operating system. TODO: look into this problem while working from home (on windows system)
 	// 25.06.2023 works fine from home
-	var imgFolder string = "./static/images/"
+
 	player.img, _, err = ebitenutil.NewImageFromFile(imgFolder + "trust.png")
 	if err != nil {
 		log.Fatal(err)
@@ -64,11 +87,6 @@ func init() {
 	player.scale = 0.3
 	player.middleX = float64(player.img.Bounds().Dx()) / 2
 	player.middleY = float64(player.img.Bounds().Dy()) / 2
-
-	initBackground(imgFolder)
-	// initialise the debug-window
-	text.InitDebug()
-
 }
 func initGraphics() {
 	// 96 * 16, 96 * 9
@@ -118,19 +136,25 @@ func initBackground(imgFolder string) {
 
 }
 
+// --------------------------- Init - End --------------------------- //
+
+// --------------------------- Update - Start --------------------------- //
+
 func updateBackground() {
-	mouseX, mouseY := ebiten.CursorPosition()
-	offX, offY := graphics.CalcOffset(gset.sh, mouseX, mouseY)
-	xBoundScreenMax := gset.winWidth/2 + player.xpos - int(offX)
-	xBoundScreenMin := player.xpos - gset.winWidth/2 - int(offX)
-	yBoundScreenMax := gset.winHeight/2 + player.ypos - int(offY)
-	yBoundScreenMin := player.ypos - gset.winHeight/2 - int(offY)
-	minX := "min Screen xpos: " + text.IntToStr(xBoundScreenMin)
+	//TODO: move this in separate file aswell
+	//offX, offY := graphics.CalcOffset(gset.sh, mouse.x, mouse.y)
+
+	xBoundScreenMax := gset.winWidth/2 + player.xpos - int(mouse.offsetX)
+	xBoundScreenMin := player.xpos - gset.winWidth/2 - int(mouse.offsetX)
+	yBoundScreenMax := gset.winHeight/2 + player.ypos - int(mouse.offsetY)
+	yBoundScreenMin := player.ypos - gset.winHeight/2 - int(mouse.offsetY)
+
+	/*minX := "min Screen xpos: " + text.IntToStr(xBoundScreenMin)
 	maxX := "max Screen xpos: " + text.IntToStr(xBoundScreenMax)
 	minY := "min Screen ypos: " + text.IntToStr(yBoundScreenMin)
 	maxY := "max Screen ypos: " + text.IntToStr(yBoundScreenMax)
-	text.AddToDebug(minX + ", " + maxX + ", " + minY + ", " + maxY)
-	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
+	text.AddToDebug(minX + ", " + maxX + ", " + minY + ", " + maxY)*/
+
 	for i := 0; i < len(bg.xpos); i++ {
 		/*onScreen := false
 
@@ -161,39 +185,38 @@ func updateBackground() {
 	}
 
 }
-
-// Game implements ebiten.Game interface.
-type Game struct{}
+func updateMouse() {
+	mouse.x, mouse.y = ebiten.CursorPosition()
+	mouse.angle = inp.GetCursorToPlayerAngle(gset.winWidth/2, gset.winHeight/2)
+	mouse.offsetX, mouse.offsetY = graphics.CalcOffset(gset.sh, mouse.x, mouse.y)
+	//text.AddToDebug("mouse angle (atan2): " + text.FloatToStr(mouse.angle))
+}
 
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
 func (g *Game) Update() error {
 	// we have to clear debug on every update
 	text.ClearDebug()
+	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
+	updateMouse()
 	updateBackground()
-
+	// addtodebug can be used to conveniently add debug messages
 	text.AddToDebug("player x-postion: " + text.IntToStr(player.xpos) + ", player y-position: " + text.IntToStr(player.ypos))
 
-	// addtodebug can be used to conveniently add debug messages
-	//mouseAngle = inp.GetCursorToPlayerAngle(player.xpos, player.ypos)
-	mouseAngle = inp.GetCursorToPlayerAngle(gset.winWidth/2, gset.winHeight/2)
-	text.AddToDebug("mouse angle (atan2): " + text.FloatToStr(mouseAngle))
 	// Write your game's logical update.
 	return nil
 }
 
+// --------------------------- Update - End --------------------------- //
+
+// --------------------------- Draw - Start --------------------------- //
+
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
 func (g *Game) Draw(screen *ebiten.Image) {
-	op := &ebiten.DrawImageOptions{}
-	op.CompositeMode = 0
-	//centerX := screen.Bounds().Dx()
-	//centerY := screen.Bounds().Dy()
 
 	// translate object to half of its width and height before and after rotating to make it spin around its center
 	// we temporarily deactivated reversing the translation
-
-	mouseX, mouseY := ebiten.CursorPosition()
 
 	// steps:
 	// #1 translate to middle of object
@@ -201,53 +224,31 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// #3 scale
 	// #4 translate to actual position
 
-	//mouseXD := float64(player.xpos-mouseX) / 2
-	//mouseYD := float64(player.ypos-mouseY) / 2
+	text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", gset.sh.MiddleX, gset.sh.MiddleY, mouse.offsetX, mouse.offsetY))
 
-	offsetX, offsetY := graphics.CalcOffset(gset.sh, mouseX, mouseY)
-
-	text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", gset.sh.MiddleX, gset.sh.MiddleY, offsetX, offsetY))
-
-	op.GeoM.Translate(-player.middleX, -player.middleY)
-
-	op.GeoM.Rotate(-mouseAngle)
-	op.GeoM.Translate(offsetX*(1/player.scale), offsetY*(1/player.scale))
-
-	//------------- alt ------ start
-
-	//op.GeoM.Translate(middleX, middleY)
-
-	op.GeoM.Scale(player.scale, player.scale)
-
-	//op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
-
-	op.GeoM.Translate(gset.sh.MiddleX, gset.sh.MiddleY)
-
-	// -------- alt ----------  end
-
-	// draw background first
 	for i := 0; i < len(bg.img); i++ {
 
 		bgop := &ebiten.DrawImageOptions{}
-		//bgop.GeoM.Scale(bg.xScaleFactor, bg.yScaleFactor)
-		//bgop.GeoM.Translate(float64(bg.xpos[i])*bg.xScaleFactor, float64(bg.ypos[i])*bg.yScaleFactor)
 
-		bgop.GeoM.Translate(offsetX, offsetY)
-		//bgop.GeoM.Translate(1000, 1000)
-
-		// 512 384
 		pivotX := player.xpos - gset.winWidth/2
 		pivotY := player.ypos - gset.winHeight/2
 		calcPosX := float64(bg.xpos[i] - pivotX)
 		calcPosY := float64(bg.ypos[i] - pivotY)
+
+		bgop.GeoM.Translate(mouse.offsetX, mouse.offsetY)
 		bgop.GeoM.Translate(calcPosX, calcPosY)
-		//fmt.Print("pivot x: " + text.IntToStr(pivotX) + ", pivot y: " + text.IntToStr(pivotY))
-
-		//bgop.GeoM.Translate(mouseXD, mouseYD)
-
+		// draw background first
 		screen.DrawImage(bg.img[i], bgop)
 	}
 
+	// player object
+	op := &ebiten.DrawImageOptions{}
+	op.CompositeMode = 0
+	op.GeoM.Translate(-player.middleX, -player.middleY)
+	op.GeoM.Rotate(-mouse.angle)
+	op.GeoM.Translate(mouse.offsetX*(1/player.scale), mouse.offsetY*(1/player.scale))
+	op.GeoM.Scale(player.scale, player.scale)
+	op.GeoM.Translate(gset.sh.MiddleX, gset.sh.MiddleY)
 	// draw player object
 	screen.DrawImage(player.img, op)
 
@@ -256,6 +257,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrintAt(screen, text.DebugMsg(), text.DebugXpos(), text.DebugYpos())
 
 }
+
+// --------------------------- Draw - End --------------------------- //
+
+// --------------------------- Main - Start --------------------------- //
 
 // Layout takes the outside size (e.g., the window size) and returns the (logical) screen size.
 // If you don't have to adjust the screen size with the outside size, just return a fixed size.
