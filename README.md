@@ -5,10 +5,16 @@ With this project I test the capabilities of the **ebiten** game engine while al
 
 ## Links
 * [ebiten tutorials and info](https://ebitengine.org/)
+* [golang boot dev](https://boot.dev/course/3b39d0f6-f944-4f1b-832d-a1daba32eda4/10b92b5a-6687-474e-9df0-e215b7d0a46d/9aedf839-7d94-43f7-82d0-1d27e5d0b79c)
+* [golang code camp video](https://www.youtube.com/watch?v=un6ZyFkqFKo&t=3080s)
+
 
 ## New Features
-* Added Background
+* Added Background (now also rearranges itself correctly)
 * Allow multiple window resolutions
+* Allow different player speed
+* added camera offset
+
 
 ## next Steps (TODO):
 - [X] make player object rotate towards the mouse Cursor
@@ -24,3 +30,5 @@ With this project I test the capabilities of the **ebiten** game engine while al
 - [ ] learn how to write tests in golang
 - [X] figure out how to fix movement with events (player stops if two opposite buttons are pressed at the same time)
 - [ ] add comments to code that explain what's going on
+- [ ] fix background (now messed up due to camera offset)
+- [ ] distinguish between logical screen and graphics

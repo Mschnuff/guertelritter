@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	_ "image/png"
 	"log"
 
@@ -18,6 +19,7 @@ type moveableobj struct {
 	rot     int
 	middleX float64
 	middleY float64
+	scale   float64
 }
 
 type backgroundGraphics struct {
@@ -56,6 +58,7 @@ func init() {
 	}
 	player.xpos = gset.winWidth / 2
 	player.ypos = gset.winHeight / 2
+	player.scale = 0.3
 	player.middleX = float64(player.img.Bounds().Dx()) / 2
 	player.middleY = float64(player.img.Bounds().Dy()) / 2
 
@@ -65,8 +68,9 @@ func init() {
 
 }
 func initGraphics() {
-	gset.winWidth = 1024
-	gset.winHeight = 768
+	// 96 * 16, 96 * 9
+	gset.winWidth = 1536
+	gset.winHeight = 864
 }
 func initBackground(imgFolder string) {
 	var err error
@@ -120,13 +124,14 @@ func updateBackground() {
 	text.AddToDebug(minX + ", " + maxX + ", " + minY + ", " + maxY)
 	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
 	for i := 0; i < len(bg.xpos); i++ {
-		onScreen := false
+		/*onScreen := false
 
 		xMax := bg.xpos[i] < xBoundScreenMax
 		xMin := bg.xpos[i] >= xBoundScreenMin-bg.width
 		yMax := bg.ypos[i] < yBoundScreenMax
 		yMin := bg.ypos[i] >= yBoundScreenMin-bg.height
 		onScreen = xMax && xMin && yMax && yMin
+		*/
 		if bg.xpos[i]+bg.width < xBoundScreenMin {
 			bg.xpos[i] = bg.xpos[i] + bg.width*4
 		}
@@ -139,11 +144,12 @@ func updateBackground() {
 		if bg.ypos[i] > yBoundScreenMax {
 			bg.ypos[i] = bg.ypos[i] - bg.height*4
 		}
-		text.AddToDebug(
-			"xpos background image [" + text.IntToStr(i+1) + "]: " +
-				text.IntToStr(bg.xpos[i]) + ", " +
-				text.IntToStr(bg.ypos[i]) + " -> image is on screen: " +
-				text.BooltoStr(onScreen))
+		/*text.AddToDebug(
+		"xpos background image [" + text.IntToStr(i+1) + "]: " +
+			text.IntToStr(bg.xpos[i]) + ", " +
+			text.IntToStr(bg.ypos[i]) + " -> image is on screen: " +
+			text.BooltoStr(onScreen))
+		*/
 	}
 
 }
@@ -178,22 +184,39 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// translate object to half of its width and height before and after rotating to make it spin around its center
 	// we temporarily deactivated reversing the translation
-	op.GeoM.Translate(-player.middleX, -player.middleY)
 
-	op.GeoM.Rotate(-mouseAngle)
-	//op.GeoM.Translate(middleX, middleY)
-
-	op.GeoM.Scale(0.3, 0.3)
-	//op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
-	screenMiddleX := float64(gset.winWidth / 2)  //+ player.middleX
-	screenMiddleY := float64(gset.winHeight / 2) //+ player.middleY
-	op.GeoM.Translate(screenMiddleX, screenMiddleY)
+	mouseX, mouseY := ebiten.CursorPosition()
 
 	// steps:
 	// #1 translate to middle of object
 	// #2 rotate
 	// #3 scale
 	// #4 translate to actual position
+
+	//mouseXD := float64(player.xpos-mouseX) / 2
+	//mouseYD := float64(player.ypos-mouseY) / 2
+	screenMiddleX := float64(gset.winWidth / 2)  //+ player.middleX
+	screenMiddleY := float64(gset.winHeight / 2) //+ player.middleY
+	CameraOffsetX := (screenMiddleX - float64(mouseX)) / 2
+	CameraOffsetY := (screenMiddleY - float64(mouseY)) / 2
+	text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", screenMiddleX, screenMiddleY, CameraOffsetX, CameraOffsetY))
+
+	op.GeoM.Translate(-player.middleX, -player.middleY)
+
+	op.GeoM.Rotate(-mouseAngle)
+	op.GeoM.Translate(CameraOffsetX*(1/player.scale), CameraOffsetY*(1/player.scale))
+
+	//------------- alt ------ start
+
+	//op.GeoM.Translate(middleX, middleY)
+
+	op.GeoM.Scale(player.scale, player.scale)
+
+	//op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
+
+	op.GeoM.Translate(screenMiddleX, screenMiddleY)
+
+	// -------- alt ----------  end
 
 	// draw background first
 	for i := 0; i < len(bg.img); i++ {
@@ -202,11 +225,19 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		//bgop.GeoM.Scale(bg.xScaleFactor, bg.yScaleFactor)
 		//bgop.GeoM.Translate(float64(bg.xpos[i])*bg.xScaleFactor, float64(bg.ypos[i])*bg.yScaleFactor)
 
+		bgop.GeoM.Translate(CameraOffsetX, CameraOffsetY)
+		//bgop.GeoM.Translate(1000, 1000)
+
 		// 512 384
 		pivotX := player.xpos - gset.winWidth/2
 		pivotY := player.ypos - gset.winHeight/2
-		bgop.GeoM.Translate(float64(bg.xpos[i]-pivotX), float64(bg.ypos[i]-pivotY))
+		calcPosX := float64(bg.xpos[i] - pivotX)
+		calcPosY := float64(bg.ypos[i] - pivotY)
+		bgop.GeoM.Translate(calcPosX, calcPosY)
 		//fmt.Print("pivot x: " + text.IntToStr(pivotX) + ", pivot y: " + text.IntToStr(pivotY))
+
+		//bgop.GeoM.Translate(mouseXD, mouseYD)
+
 		screen.DrawImage(bg.img[i], bgop)
 	}
 
