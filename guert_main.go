@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
+	"github.com/mschnuff/guertelritter/graphics"
 	inp "github.com/mschnuff/guertelritter/input"
 	text "github.com/mschnuff/guertelritter/text"
 )
@@ -37,6 +38,7 @@ type backgroundGraphics struct {
 type graphiceSettings struct {
 	winWidth  int
 	winHeight int
+	sh        graphics.ScreenHandler
 }
 
 var gset graphiceSettings
@@ -51,6 +53,7 @@ func init() {
 	// testpush
 	var err error
 	// this path depends on the operating system. TODO: look into this problem while working from home (on windows system)
+	// 25.06.2023 works fine from home
 	var imgFolder string = "./static/images/"
 	player.img, _, err = ebitenutil.NewImageFromFile(imgFolder + "trust.png")
 	if err != nil {
@@ -71,6 +74,7 @@ func initGraphics() {
 	// 96 * 16, 96 * 9
 	gset.winWidth = 1536
 	gset.winHeight = 864
+	gset.sh = graphics.InitScreenHandler(gset.winWidth, gset.winHeight)
 }
 func initBackground(imgFolder string) {
 	var err error
@@ -105,6 +109,8 @@ func initBackground(imgFolder string) {
 		bg.height = bg.img[c].Bounds().Dy()
 		bg.xpos[c] = bgImgPositions[c][0] * bg.width
 		bg.ypos[c] = bgImgPositions[c][1] * bg.height
+
+		// ScaleFactor not in use
 		bg.xScaleFactor = (float64((gset.winWidth / 4)) / float64(bg.width))
 		bg.yScaleFactor = (float64((gset.winHeight / 4)) / float64(bg.height))
 
@@ -113,10 +119,12 @@ func initBackground(imgFolder string) {
 }
 
 func updateBackground() {
-	xBoundScreenMax := gset.winWidth/2 + player.xpos
-	xBoundScreenMin := player.xpos - gset.winWidth/2
-	yBoundScreenMax := gset.winHeight/2 + player.ypos
-	yBoundScreenMin := player.ypos - gset.winHeight/2
+	mouseX, mouseY := ebiten.CursorPosition()
+	offX, offY := graphics.CalcOffset(gset.sh, mouseX, mouseY)
+	xBoundScreenMax := gset.winWidth/2 + player.xpos - int(offX)
+	xBoundScreenMin := player.xpos - gset.winWidth/2 - int(offX)
+	yBoundScreenMax := gset.winHeight/2 + player.ypos - int(offY)
+	yBoundScreenMin := player.ypos - gset.winHeight/2 - int(offY)
 	minX := "min Screen xpos: " + text.IntToStr(xBoundScreenMin)
 	maxX := "max Screen xpos: " + text.IntToStr(xBoundScreenMax)
 	minY := "min Screen ypos: " + text.IntToStr(yBoundScreenMin)
@@ -195,16 +203,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	//mouseXD := float64(player.xpos-mouseX) / 2
 	//mouseYD := float64(player.ypos-mouseY) / 2
-	screenMiddleX := float64(gset.winWidth / 2)  //+ player.middleX
-	screenMiddleY := float64(gset.winHeight / 2) //+ player.middleY
-	CameraOffsetX := (screenMiddleX - float64(mouseX)) / 2
-	CameraOffsetY := (screenMiddleY - float64(mouseY)) / 2
-	text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", screenMiddleX, screenMiddleY, CameraOffsetX, CameraOffsetY))
+
+	offsetX, offsetY := graphics.CalcOffset(gset.sh, mouseX, mouseY)
+
+	text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", gset.sh.MiddleX, gset.sh.MiddleY, offsetX, offsetY))
 
 	op.GeoM.Translate(-player.middleX, -player.middleY)
 
 	op.GeoM.Rotate(-mouseAngle)
-	op.GeoM.Translate(CameraOffsetX*(1/player.scale), CameraOffsetY*(1/player.scale))
+	op.GeoM.Translate(offsetX*(1/player.scale), offsetY*(1/player.scale))
 
 	//------------- alt ------ start
 
@@ -214,7 +221,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	//op.GeoM.Translate(float64(player.xpos), float64(player.ypos))
 
-	op.GeoM.Translate(screenMiddleX, screenMiddleY)
+	op.GeoM.Translate(gset.sh.MiddleX, gset.sh.MiddleY)
 
 	// -------- alt ----------  end
 
@@ -225,7 +232,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		//bgop.GeoM.Scale(bg.xScaleFactor, bg.yScaleFactor)
 		//bgop.GeoM.Translate(float64(bg.xpos[i])*bg.xScaleFactor, float64(bg.ypos[i])*bg.yScaleFactor)
 
-		bgop.GeoM.Translate(CameraOffsetX, CameraOffsetY)
+		bgop.GeoM.Translate(offsetX, offsetY)
 		//bgop.GeoM.Translate(1000, 1000)
 
 		// 512 384
