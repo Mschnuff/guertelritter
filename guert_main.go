@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "image/png"
 	"log"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -59,6 +60,7 @@ var player moveableobj
 var mouseAngle float64
 var bg backgroundGraphics
 var mouse mouseHandler
+var asteroids []moveableobj
 
 // --------------------------- Init - Start --------------------------- //
 
@@ -68,10 +70,27 @@ func init() {
 
 	var imgFolder string = "./static/images/"
 	initPlayer(imgFolder)
+	initAsteroids(imgFolder, 5)
 	initBackground(imgFolder)
 	// initialise the debug-window
 	text.InitDebug()
 
+}
+func initAsteroids(imgFolder string, amount int) {
+	// TODO: create multiple objects
+	var err error
+	for x := 0; x < amount; x++ {
+		var as moveableobj
+
+		as.img, _, err = ebitenutil.NewImageFromFile(imgFolder + "asteroid.png")
+		if err != nil {
+			log.Fatal(err)
+		}
+		as.xpos = rand.Intn(2000) - 1000
+		as.ypos = rand.Intn(1400) - 700
+		as.scale = 0.2
+		asteroids = append(asteroids, as)
+	}
 }
 func initPlayer(imgFolder string) {
 	var err error
@@ -210,6 +229,20 @@ func (g *Game) Update() error {
 // --------------------------- Update - End --------------------------- //
 
 // --------------------------- Draw - Start --------------------------- //
+func drawAsteroids(screen *ebiten.Image) {
+
+	// TODO: check if asteroid is on screen before drawing
+	for i := 0; i < len(asteroids); i++ {
+		asop := &ebiten.DrawImageOptions{}
+		// TODO figure out where camera is and where player acutally is
+		aX := float64(asteroids[i].xpos)
+		aY := float64(asteroids[i].ypos)
+
+		asop.GeoM.Translate(aX, aY)
+		asop.GeoM.Scale(asteroids[i].scale, asteroids[i].scale)
+		screen.DrawImage(asteroids[i].img, asop)
+	}
+}
 
 // Draw draws the game screen.
 // Draw is called every frame (typically 1/60[s] for 60Hz display).
@@ -225,7 +258,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// #4 translate to actual position
 
 	text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", gset.sh.MiddleX, gset.sh.MiddleY, mouse.offsetX, mouse.offsetY))
-
+	// background
 	for i := 0; i < len(bg.img); i++ {
 
 		bgop := &ebiten.DrawImageOptions{}
@@ -240,6 +273,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		// draw background first
 		screen.DrawImage(bg.img[i], bgop)
 	}
+
+	drawAsteroids(screen)
 
 	// player object
 	op := &ebiten.DrawImageOptions{}
