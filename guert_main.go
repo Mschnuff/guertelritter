@@ -86,6 +86,8 @@ func initAsteroids(imgFolder string, amount int) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		//as.xpos = x * 200
+		//as.ypos = x * 200
 		as.xpos = rand.Intn(2000) - 1000
 		as.ypos = rand.Intn(1400) - 700
 		as.scale = 0.2
@@ -210,6 +212,9 @@ func updateMouse() {
 	mouse.offsetX, mouse.offsetY = graphics.CalcOffset(gset.sh, mouse.x, mouse.y)
 	//text.AddToDebug("mouse angle (atan2): " + text.FloatToStr(mouse.angle))
 }
+func updateScreenPos() {
+
+}
 
 // Update proceeds the game state.
 // Update is called every tick (1/60 [s] by default).
@@ -229,17 +234,25 @@ func (g *Game) Update() error {
 // --------------------------- Update - End --------------------------- //
 
 // --------------------------- Draw - Start --------------------------- //
-func drawAsteroids(screen *ebiten.Image) {
 
-	// TODO: check if asteroid is on screen before drawing
+func drawAsteroids(screen *ebiten.Image) {
+	// pivot indicates the origin of the screen
+	pivotX := player.xpos - gset.winWidth/2 - int(mouse.offsetX)
+	pivotY := player.ypos - gset.winHeight/2 - int(mouse.offsetY)
+	xScreenMax := pivotX + gset.winWidth
+	yScreenMax := pivotY + gset.winHeight
+	text.AddToDebug("Screen Origin: " + text.IntToStr(pivotX) + ", " + text.IntToStr(pivotY))
+	text.AddToDebug("Screen Max: " + text.IntToStr(xScreenMax) + ", " + text.IntToStr(yScreenMax))
 	for i := 0; i < len(asteroids); i++ {
 		asop := &ebiten.DrawImageOptions{}
-		// TODO figure out where camera is and where player acutally is
-		aX := float64(asteroids[i].xpos)
-		aY := float64(asteroids[i].ypos)
 
-		asop.GeoM.Translate(aX, aY)
+		calcPosX := float64(asteroids[i].xpos - pivotX)
+		calcPosY := float64(asteroids[i].ypos - pivotY)
+		text.AddToDebug(text.IntToStr(int(calcPosX)) + ", " + text.IntToStr(int(calcPosY)))
 		asop.GeoM.Scale(asteroids[i].scale, asteroids[i].scale)
+
+		asop.GeoM.Translate(calcPosX, calcPosY)
+
 		screen.DrawImage(asteroids[i].img, asop)
 	}
 }
