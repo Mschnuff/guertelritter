@@ -165,10 +165,10 @@ func updateBackground() {
 	//TODO: move this in separate file aswell
 	//offX, offY := graphics.CalcOffset(gset.sh, mouse.x, mouse.y)
 
-	xBoundScreenMax := gset.winWidth/2 + player.xpos - int(mouse.offsetX)
-	xBoundScreenMin := player.xpos - gset.winWidth/2 - int(mouse.offsetX)
-	yBoundScreenMax := gset.winHeight/2 + player.ypos - int(mouse.offsetY)
-	yBoundScreenMin := player.ypos - gset.winHeight/2 - int(mouse.offsetY)
+	xBoundScreenMax, yBoundScreenMax := graphics.ScreenBounds(gset.sh)
+	xBoundScreenMin, yBoundScreenMin := graphics.ScreenPivot(gset.sh)
+	//yBoundScreenMax := gset.winHeight/2 + player.ypos - int(mouse.offsetY)
+	//yBoundScreenMin := player.ypos - gset.winHeight/2 - int(mouse.offsetY)
 
 	/*minX := "min Screen xpos: " + text.IntToStr(xBoundScreenMin)
 	maxX := "max Screen xpos: " + text.IntToStr(xBoundScreenMax)
@@ -210,10 +210,8 @@ func updateMouse() {
 	mouse.x, mouse.y = ebiten.CursorPosition()
 	mouse.angle = inp.GetCursorToPlayerAngle(gset.winWidth/2, gset.winHeight/2)
 	mouse.offsetX, mouse.offsetY = graphics.CalcOffset(gset.sh, mouse.x, mouse.y)
+	text.AddToDebug(fmt.Sprintf("mouse offset x = %v, mouse offset y = %v", mouse.offsetX, mouse.offsetY))
 	//text.AddToDebug("mouse angle (atan2): " + text.FloatToStr(mouse.angle))
-}
-func updateScreenPos() {
-
 }
 
 // Update proceeds the game state.
@@ -223,6 +221,7 @@ func (g *Game) Update() error {
 	text.ClearDebug()
 	player.xpos, player.ypos = inp.HandlePlayerMovement(player.xpos, player.ypos)
 	updateMouse()
+	graphics.UpdateScreenPos(&gset.sh, player.xpos, player.ypos, mouse.offsetX, mouse.offsetY)
 	updateBackground()
 	// addtodebug can be used to conveniently add debug messages
 	text.AddToDebug("player x-postion: " + text.IntToStr(player.xpos) + ", player y-position: " + text.IntToStr(player.ypos))
@@ -237,22 +236,25 @@ func (g *Game) Update() error {
 
 func drawAsteroids(screen *ebiten.Image) {
 	// pivot indicates the origin of the screen
-	pivotX := player.xpos - gset.winWidth/2 - int(mouse.offsetX)
+	/*pivotX := player.xpos - gset.winWidth/2 - int(mouse.offsetX)
 	pivotY := player.ypos - gset.winHeight/2 - int(mouse.offsetY)
 	xScreenMax := pivotX + gset.winWidth
 	yScreenMax := pivotY + gset.winHeight
+
 	text.AddToDebug("Screen Origin: " + text.IntToStr(pivotX) + ", " + text.IntToStr(pivotY))
-	text.AddToDebug("Screen Max: " + text.IntToStr(xScreenMax) + ", " + text.IntToStr(yScreenMax))
+	text.AddToDebug("Screen Max: " + text.IntToStr(xScreenMax) + ", " + text.IntToStr(yScreenMax))*/
+	xmin, ymin := graphics.ScreenPivot(gset.sh)
 	for i := 0; i < len(asteroids); i++ {
 		asop := &ebiten.DrawImageOptions{}
-
-		calcPosX := float64(asteroids[i].xpos - pivotX)
-		calcPosY := float64(asteroids[i].ypos - pivotY)
+		// calculate position relative to ScreenPivot
+		calcPosX := float64(asteroids[i].xpos - xmin)
+		calcPosY := float64(asteroids[i].ypos - ymin)
 		text.AddToDebug(text.IntToStr(int(calcPosX)) + ", " + text.IntToStr(int(calcPosY)))
+
+		// scale translate rotate
 		asop.GeoM.Scale(asteroids[i].scale, asteroids[i].scale)
-
 		asop.GeoM.Translate(calcPosX, calcPosY)
-
+		// draw
 		screen.DrawImage(asteroids[i].img, asop)
 	}
 }
@@ -270,18 +272,18 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// #3 scale
 	// #4 translate to actual position
 
-	text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", gset.sh.MiddleX, gset.sh.MiddleY, mouse.offsetX, mouse.offsetY))
+	//text.AddToDebug(fmt.Sprintf("screen: (%v, %v) offset: (%v, %v)", gset.sh.MiddleX, gset.sh.MiddleY, mouse.offsetX, mouse.offsetY))
 	// background
+	pivotX, pivotY := graphics.ScreenPivot(gset.sh)
+	//text.AddToDebug(fmt.Sprintf("pivot x = %v, pivot = y %v", pivotX, pivotY))
 	for i := 0; i < len(bg.img); i++ {
 
 		bgop := &ebiten.DrawImageOptions{}
 
-		pivotX := player.xpos - gset.winWidth/2
-		pivotY := player.ypos - gset.winHeight/2
 		calcPosX := float64(bg.xpos[i] - pivotX)
 		calcPosY := float64(bg.ypos[i] - pivotY)
 
-		bgop.GeoM.Translate(mouse.offsetX, mouse.offsetY)
+		//bgop.GeoM.Translate(mouse.offsetX, mouse.offsetY)
 		bgop.GeoM.Translate(calcPosX, calcPosY)
 		// draw background first
 		screen.DrawImage(bg.img[i], bgop)
